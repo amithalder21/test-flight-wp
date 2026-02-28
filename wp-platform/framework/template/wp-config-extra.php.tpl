@@ -44,7 +44,6 @@ define('WP_POST_REVISIONS', 5);
  * Security & Admin Safety
  * ------------------------------------------------- */
 define('XMLRPC_REQUEST', false);
-define('COOKIE_DOMAIN', $_SERVER['HTTP_HOST']);
 
 /* -------------------------------------------------
  * PHP Runtime Safety
