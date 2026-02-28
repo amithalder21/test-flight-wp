@@ -53,18 +53,9 @@ fi
 # -------------------------------
 echo "🔐 Checking ACME storage (Let's Encrypt)..."
 
-if [[ ! -d "letsencrypt" ]]; then
-  run "mkdir -p letsencrypt"
-fi
-
-if [[ ! -f "letsencrypt/acme.json" ]]; then
-  run "touch letsencrypt/acme.json"
-fi
-
-CURRENT_PERMS=$(stat -c "%a" letsencrypt/acme.json 2>/dev/null || echo "000")
-if [[ "$CURRENT_PERMS" != "600" ]]; then
-  run "chmod 600 letsencrypt/acme.json"
-fi
+run "mkdir -p letsencrypt"
+run "touch letsencrypt/acme.json"
+run "chmod 600 letsencrypt/acme.json"
 
 echo "✅ ACME storage ready"
 
@@ -82,30 +73,20 @@ if ! docker network inspect proxy >/dev/null 2>&1; then
   fi
 fi
 
-# ---------------------------------------------------------
-# ACME STORAGE SAFETY CHECK (Traefik)
-# ---------------------------------------------------------
+# -------------------------------
+# Traefik ACME storage
+# -------------------------------
 echo "🔐 Checking Traefik ACME storage..."
 
-if [[ ! -d "ingress/letsencrypt" ]]; then
-  run "mkdir -p ingress/letsencrypt"
-fi
-
-if [[ ! -f "ingress/letsencrypt/acme.json" ]]; then
-  run "touch ingress/letsencrypt/acme.json"
-fi
-
-CURRENT_PERMS=$(stat -c "%a" ingress/letsencrypt/acme.json 2>/dev/null || echo "000")
-
-if [[ "$CURRENT_PERMS" != "600" ]]; then
-  run "chmod 600 ingress/letsencrypt/acme.json"
-fi
+run "mkdir -p ingress/letsencrypt"
+run "touch ingress/letsencrypt/acme.json"
+run "chmod 600 ingress/letsencrypt/acme.json"
 
 echo "✅ Traefik ACME storage ready"
 
-# ---------------------------------------------------------
+# -------------------------------
 # Traefik check
-# ---------------------------------------------------------
+# -------------------------------
 TRAEFIK_RUNNING=$(is_container_running traefik)
 
 if [[ "$TRAEFIK_RUNNING" != "true" ]]; then
@@ -128,6 +109,20 @@ echo ""
 read -p "Client ID (short, unique): " CLIENT
 read -p "Client Domain (example.client.com): " DOMAIN
 read -p "Plan (starter | pro | enterprise): " PLAN
+
+read -p "WordPress replicas (default 1): " WP_SCALE
+WP_SCALE=${WP_SCALE:-1}
+
+if ! [[ "$WP_SCALE" =~ ^[0-9]+$ ]] || [[ "$WP_SCALE" -lt 1 ]]; then
+  echo "❌ Invalid replica count"
+  exit 1
+fi
+
+if [[ "$WP_SCALE" -gt 1 ]]; then
+  echo "⚠️  Multiple replicas enabled ($WP_SCALE)"
+  echo "⚠️  Ensure plugin installs are disabled and filesystem is stable"
+fi
+
 read -s -p "DB password: " DB_PASS; echo
 read -s -p "DB root password: " DB_ROOT; echo
 
@@ -193,12 +188,12 @@ run "sed -i \
 # DEPLOY CLIENT STACK
 # =========================================================
 if [[ "$AUTO_DEPLOY" == "true" ]]; then
-  run "docker compose -f '$BASE/docker-compose.yml' up -d"
+  run "docker compose -f '$BASE/docker-compose.yml' up -d --scale wordpress=$WP_SCALE"
 else
   echo ""
   read -p "🚀 Deploy client stack now? (y/N): " DEPLOY
   if [[ "$DEPLOY" =~ ^[Yy]$ ]]; then
-    run "docker compose -f '$BASE/docker-compose.yml' up -d"
+    run "docker compose -f '$BASE/docker-compose.yml' up -d --scale wordpress=$WP_SCALE"
   else
     echo "ℹ️ Deployment skipped"
   fi
@@ -213,6 +208,7 @@ echo "--------------------------------"
 echo "Client ID : $CLIENT"
 echo "Domain    : $DOMAIN"
 echo "Plan      : $PLAN"
+echo "Replicas  : $WP_SCALE"
 echo "CPU       : $WP_CPUS"
 echo "Memory    : $WP_MEMORY"
 echo "Redis Mem : $REDIS_MEMORY"
@@ -224,6 +220,5 @@ echo ""
 echo "SSL:"
 echo "Issued automatically by Traefik (Let's Encrypt)"
 echo ""
-echo "Run docker compose -f '$BASE/docker-compose.yml' up -d"
 
 [[ "$DRY_RUN" == "true" ]] && echo "⚠️  DRY-RUN COMPLETE — no changes applied"
