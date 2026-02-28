@@ -1,15 +1,10 @@
-# Wordpress - ignore core, configuration, examples, uploads and logs.
+########################################
+# WordPress (based on official template)
 # https://github.com/github/gitignore/blob/main/WordPress.gitignore
+########################################
 
 # Core
-#
-# Note: if you want to stage/commit WP core files
-# you can delete this whole section/until Configuration.
 /wp-admin/
-/wp-content/index.php
-/wp-content/languages
-/wp-content/plugins/index.php
-/wp-content/themes/index.php
 /wp-includes/
 /index.php
 /license.txt
@@ -17,47 +12,58 @@
 /wp-*.php
 /xmlrpc.php
 
+# wp-content placeholders
+/wp-content/index.php
+/wp-content/languages
+/wp-content/plugins/index.php
+/wp-content/themes/index.php
+
 # Configuration
 wp-config.php
 
-# Example themes
+# Default themes
 /wp-content/themes/twenty*/
 
-# Example plugin
+# Default plugin
 /wp-content/plugins/hello.php
 
 # Uploads
 /wp-content/uploads/
 
-# Log files
+# Logs
 *.log
 
 # htaccess
 /.htaccess
 
-# All plugins
-#
-# Note: If you wish to whitelist plugins,
-# uncomment the next line
-#/wp-content/plugins
+########################################
+# SaaS Platform – Client Isolation
+########################################
 
-# All themes
-#
-# Note: If you wish to whitelist themes,
-# uncomment the next line
-#/wp-content/themes
+# Ignore ALL client runtime stacks
+clients/*/
 
-# Client runtime data
-data/
+# BUT keep the directory itself
+!clients/.gitkeep
 
-# Docker volumes
+########################################
+# Runtime data / volumes (defense-in-depth)
+########################################
+
+**/data/
 **/data/wp/*
 **/data/mysql/*
 **/data/redis/*
 
-# Env / secrets
+########################################
+# Docker / secrets
+########################################
+
 .env
 *.env
 
+########################################
 # OS junk
+########################################
+
 .DS_Store
