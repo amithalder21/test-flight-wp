@@ -6,17 +6,14 @@ scrape_configs:
   # Traefik metrics
   - job_name: "traefik"
     static_configs:
-      - targets:
-          - "traefik:8082"
+      - targets: ["traefik:8082"]
 
-  # Container metrics
+  # Container-level metrics
   - job_name: "cadvisor"
     static_configs:
-      - targets:
-          - "cadvisor:8080"
+      - targets: ["cadvisor:8080"]
 
   # Host metrics
   - job_name: "node"
     static_configs:
-      - targets:
-          - "node-exporter:9100"
+      - targets: ["node-exporter:9100"]
