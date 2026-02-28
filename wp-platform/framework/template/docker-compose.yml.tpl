@@ -15,7 +15,16 @@ services:
   redis:
     image: redis:7-alpine
     restart: always
-    command: command:["redis-server","--save","","--appendonly","no","--maxmemory","__REDIS_MEMORY__","--maxmemory-policy","allkeys-lru"]
+    command:
+      - redis-server
+      - --save
+      - ""
+      - --appendonly
+      - "no"
+      - --maxmemory
+      - "__REDIS_MEMORY__"
+      - --maxmemory-policy
+      - allkeys-lru
     networks:
       - __CLIENT__-net
 
