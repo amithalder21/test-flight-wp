@@ -42,6 +42,7 @@ services:
         require '/var/www/html/wp-config-extra.php';
     volumes:
       - ./data/wp:/var/www/html
+      - ./data/uploads:/var/www/html/wp-content/uploads
       - ./wp-config-extra.php:/var/www/html/wp-config-extra.php
     networks:
       - __CLIENT__-net
