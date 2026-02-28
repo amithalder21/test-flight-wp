@@ -82,9 +82,30 @@ if ! docker network inspect proxy >/dev/null 2>&1; then
   fi
 fi
 
-# -------------------------------
+# ---------------------------------------------------------
+# ACME STORAGE SAFETY CHECK (Traefik)
+# ---------------------------------------------------------
+echo "🔐 Checking Traefik ACME storage..."
+
+if [[ ! -d "ingress/letsencrypt" ]]; then
+  run "mkdir -p ingress/letsencrypt"
+fi
+
+if [[ ! -f "ingress/letsencrypt/acme.json" ]]; then
+  run "touch ingress/letsencrypt/acme.json"
+fi
+
+CURRENT_PERMS=$(stat -c "%a" ingress/letsencrypt/acme.json 2>/dev/null || echo "000")
+
+if [[ "$CURRENT_PERMS" != "600" ]]; then
+  run "chmod 600 ingress/letsencrypt/acme.json"
+fi
+
+echo "✅ Traefik ACME storage ready"
+
+# ---------------------------------------------------------
 # Traefik check
-# -------------------------------
+# ---------------------------------------------------------
 TRAEFIK_RUNNING=$(is_container_running traefik)
 
 if [[ "$TRAEFIK_RUNNING" != "true" ]]; then
