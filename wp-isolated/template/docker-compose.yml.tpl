@@ -1,5 +1,3 @@
-version: "3.9"
-
 services:
   mysql:
     image: mysql:8.0
@@ -51,16 +49,23 @@ services:
     image: nginx:alpine
     container_name: __CLIENT__-nginx
     restart: always
-    ports:
-      - "127.0.0.1:__PORT__:80"
     volumes:
       - ./data/wp:/var/www/html
       - ./nginx.conf:/etc/nginx/conf.d/default.conf
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=ingress"
+      - "traefik.http.routers.__CLIENT__.rule=Host(`__DOMAIN__`)"
+      - "traefik.http.routers.__CLIENT__.entrypoints=web"
+      - "traefik.http.services.__CLIENT__.loadbalancer.server.port=80"
     networks:
       - __CLIENT__-net
+      - ingress
     depends_on:
       - wordpress
 
 networks:
   __CLIENT__-net:
     driver: bridge
+  ingress:
+    external: true
