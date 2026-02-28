@@ -21,6 +21,7 @@ services:
       - "--entrypoints.web.http.redirections.entrypoint.to=websecure"
       - "--entrypoints.web.http.redirections.entrypoint.scheme=https"
       - "--entrypoints.websecure.address=:443"
+      - "--entrypoints.metrics.address=:8082"
 
       # Docker provider
       - "--providers.docker=true"
@@ -39,6 +40,12 @@ services:
       # Logs
       - "--log.level=INFO"
       - "--accesslog=true"
+       
+      # Prometheus metrics flags 
+      - "--metrics.prometheus=true"
+      - "--metrics.prometheus.entrypoint=metrics"
+      - "--metrics.prometheus.addrouterslabels=true"
+      - "--metrics.prometheus.addserviceslabels=true"
 
     networks:
       - proxy
