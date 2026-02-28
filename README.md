@@ -72,6 +72,8 @@ Each client runs in **its own Docker network** and **cannot see other clients**.
 │       ├── docker-compose.yml.tpl
 │       └── wp-config-extra.php.tpl
 │
+├── onboard.sh                    # Client onboarding script
+│
 ├── clients/
 │   └── <client-id>/
 │       ├── docker-compose.yml
@@ -80,8 +82,6 @@ Each client runs in **its own Docker network** and **cannot see other clients**.
 │           ├── wp/
 │           ├── mysql/
 │           └── redis/
-│
-├── onboard.sh                    # Client onboarding script
 └── README.md
 ```
 
