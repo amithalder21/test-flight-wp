@@ -1,7 +1,3 @@
-Here is a **clean, simple, GitHub-ready README** for your project — written so that **future you, contributors, or users** immediately understand what this platform is and how to use it.
-
-You can copy-paste this directly into `README.md`.
-
 ---
 
 # 🚀 WordPress Multi-Client Platform (Docker + Traefik)
