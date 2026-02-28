@@ -203,5 +203,6 @@ echo ""
 echo "SSL:"
 echo "Issued automatically by Traefik (Let's Encrypt)"
 echo ""
+echo "Run docker compose -f '$BASE/docker-compose.yml' up -d"
 
 [[ "$DRY_RUN" == "true" ]] && echo "⚠️  DRY-RUN COMPLETE — no changes applied"
