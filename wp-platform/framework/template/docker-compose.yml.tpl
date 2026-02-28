@@ -15,13 +15,15 @@ services:
   redis:
     image: redis:7-alpine
     restart: always
-    command: ["redis-server", "--save", "", "--appendonly", "no"]
+    command: command:["redis-server","--save","","--appendonly","no","--maxmemory","__REDIS_MEMORY__","--maxmemory-policy","allkeys-lru"]
     networks:
       - __CLIENT__-net
 
   wordpress:
     image: wordpress:php8.2-apache
     restart: always
+    cpus: "__WP_CPUS__"
+    mem_limit: "__WP_MEMORY__"
     environment:
       WORDPRESS_DB_HOST: mysql
       WORDPRESS_DB_NAME: wp
