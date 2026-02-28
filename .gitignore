@@ -46,3 +46,18 @@ wp-config.php
 # Note: If you wish to whitelist themes,
 # uncomment the next line
 #/wp-content/themes
+
+# Client runtime data
+data/
+
+# Docker volumes
+**/data/wp/*
+**/data/mysql/*
+**/data/redis/*
+
+# Env / secrets
+.env
+*.env
+
+# OS junk
+.DS_Store
