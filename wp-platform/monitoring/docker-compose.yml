@@ -17,13 +17,18 @@ services:
   grafana:
     image: grafana/grafana:latest
     container_name: grafana
-    restart: unless-stopped
-    ports:
-      - "127.0.0.1:3000:3000"
     volumes:
       - grafana-data:/var/lib/grafana
     networks:
       - proxy
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=proxy"
+      - "traefik.http.routers.grafana.rule=Host(`grafana.platform.justbots.tech`)"
+      - "traefik.http.routers.grafana.entrypoints=websecure"
+      - "traefik.http.routers.grafana.tls=true"
+      - "traefik.http.routers.grafana.tls.certresolver=le"
+      - "traefik.http.services.grafana.loadbalancer.server.port=3000"
 
   cadvisor:
     image: gcr.io/cadvisor/cadvisor:latest
