@@ -1,0 +1,40 @@
+version: "3.9"
+
+services:
+  traefik:
+    image: traefik:v3.6
+    container_name: traefik
+    restart: unless-stopped
+
+    # Expose HTTP + Dashboard
+    ports:
+      - "80:80"
+      - "8080:8080"   # Dashboard (DEBUG ONLY)
+
+    # Docker provider
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+
+    command:
+      # Entrypoints
+      - "--entrypoints.web.address=:80"
+
+      # Docker provider
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--providers.docker.network=proxy"
+
+      # Dashboard
+      - "--api.dashboard=true"
+      - "--api.insecure=true"
+
+      # Logs (keep while stabilizing)
+      - "--log.level=INFO"
+      - "--accesslog=true"
+
+    networks:
+      - proxy
+
+networks:
+  proxy:
+    external: true
