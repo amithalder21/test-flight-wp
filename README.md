@@ -245,12 +245,3 @@ This project is designed for **real SaaS use**, not demos.
 If you treat WordPress as **infrastructure**, this platform does it right.
 
 ---
-
-If you want, I can also:
-
-* Add a **Quick Start** section
-* Add **Architecture diagram**
-* Write **Contributor Guidelines**
-* Create a **docs/** structure
-
-Just say 👍
