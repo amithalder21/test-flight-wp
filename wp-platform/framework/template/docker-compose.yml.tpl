@@ -36,11 +36,12 @@ services:
       - __CLIENT__-net
       - proxy
     labels:
-      # Traefik-ready (inactive until Traefik runs)
       - "traefik.enable=true"
       - "traefik.docker.network=proxy"
       - "traefik.http.routers.__CLIENT__.rule=Host(`__DOMAIN__`)"
-      - "traefik.http.routers.__CLIENT__.entrypoints=web"
+      - "traefik.http.routers.__CLIENT__.entrypoints=websecure"
+      - "traefik.http.routers.__CLIENT__.tls=true"
+      - "traefik.http.routers.__CLIENT__.tls.certresolver=le"
       - "traefik.http.services.__CLIENT__.loadbalancer.server.port=80"
     depends_on:
       - mysql

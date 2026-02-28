@@ -1,10 +1,10 @@
 #!/bin/bash
 set -e
 
-echo "🚀 WordPress Client Onboarding (Proxy-Ready)"
+echo "🚀 WordPress Client Onboarding"
 
 read -p "Client ID (short, unique): " CLIENT
-read -p "Domain (example.com): " DOMAIN
+read -p "Client Domain (example.client.com): " DOMAIN
 read -s -p "DB password: " DB_PASS; echo
 read -s -p "DB root password: " DB_ROOT; echo
 
@@ -34,6 +34,14 @@ sed -i "s/__DB_PASS__/$DB_PASS/g" \
 sed -i "s/__DB_ROOT__/$DB_ROOT/g" \
   "$BASE/docker-compose.yml"
 
+echo ""
 echo "✅ Client created: $CLIENT"
-echo "➡ Start:"
+echo ""
+echo "➡ Start client:"
 echo "docker compose -f $BASE/docker-compose.yml up -d"
+echo ""
+echo "➡ Client DNS (CNAME):"
+echo "$DOMAIN  →  platform.justbots.tech"
+echo "Proxy/CDN: OFF (DNS-only)"
+echo ""
+echo "SSL will be issued automatically."

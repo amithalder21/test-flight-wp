@@ -6,29 +6,37 @@ services:
     container_name: traefik
     restart: unless-stopped
 
-    # Expose HTTP + Dashboard
     ports:
       - "80:80"
-      - "8080:8080"   # Dashboard (DEBUG ONLY)
+      - "443:443"
+      - "8080:8080"   # dashboard (remove later)
 
-    # Docker provider
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./letsencrypt:/letsencrypt
 
     command:
-      # Entrypoints
+      # EntryPoints
       - "--entrypoints.web.address=:80"
+      - "--entrypoints.web.http.redirections.entrypoint.to=websecure"
+      - "--entrypoints.web.http.redirections.entrypoint.scheme=https"
+      - "--entrypoints.websecure.address=:443"
 
       # Docker provider
       - "--providers.docker=true"
       - "--providers.docker.exposedbydefault=false"
       - "--providers.docker.network=proxy"
 
+      # ACME (Let's Encrypt)
+      - "--certificatesresolvers.le.acme.email=admin@justbots.tech"
+      - "--certificatesresolvers.le.acme.storage=/letsencrypt/acme.json"
+      - "--certificatesresolvers.le.acme.httpchallenge.entrypoint=web"
+
       # Dashboard
       - "--api.dashboard=true"
       - "--api.insecure=true"
 
-      # Logs (keep while stabilizing)
+      # Logs
       - "--log.level=INFO"
       - "--accesslog=true"
 
