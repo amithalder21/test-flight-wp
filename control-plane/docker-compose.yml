@@ -1,0 +1,99 @@
+version: "3.9"
+
+services:
+  # =========================================================
+  # MongoDB (Komodo DB)
+  # =========================================================
+  mongo:
+    image: mongo:7
+    container_name: komodo-mongo
+    restart: unless-stopped
+    volumes:
+      - ./data/mongo:/data/db
+    networks:
+      - proxy
+
+  # =========================================================
+  # Komodo Core (UI + API)
+  # =========================================================
+  komodo:
+    image: ghcr.io/moghtech/komodo-core:latest
+    container_name: komodo-core
+    restart: unless-stopped
+
+    environment:
+      # Core binding
+      KOMODO_HOST: https://komodo.justbots.tech
+      KOMODO_BIND_IP: 0.0.0.0
+      KOMODO_PORT: 9120
+
+      # 🔐 REQUIRED – must match periphery
+      KOMODO_PASSKEY: super-secret-passkey-change-me
+
+      # ✅ Enable local login (FIXES "No login methods")
+      KOMODO_LOCAL_AUTH: "true"
+
+      # Initial admin user (created once)
+      KOMODO_INIT_ADMIN_USERNAME: admin
+      KOMODO_INIT_ADMIN_PASSWORD: admin123
+
+      # Mongo connection (CORRECT)
+      KOMODO_DATABASE_URI: mongodb://mongo:27017
+      KOMODO_DATABASE_DB_NAME: komodo
+
+      # JWT (persistent login across restarts)
+      KOMODO_JWT_SECRET: a9c3f0e4b0d7f2b9e2d6c7b9c4f2a8e1d7c3a1f9b0e2d4c7
+      KOMODO_JWT_TTL: 1-day
+
+      # Polling intervals (VALID VALUES ONLY)
+      KOMODO_MONITORING_INTERVAL: 15-sec
+      KOMODO_RESOURCE_POLL_INTERVAL: 1-hr
+
+      # Logging
+      KOMODO_LOGGING_LEVEL: info
+
+    depends_on:
+      - mongo
+
+    volumes:
+      - ./data/komodo:/data
+
+    networks:
+      - proxy
+
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=proxy"
+      - "traefik.http.routers.komodo.rule=Host(`komodo.justbots.tech`)"
+      - "traefik.http.routers.komodo.entrypoints=websecure"
+      - "traefik.http.routers.komodo.tls=true"
+      - "traefik.http.routers.komodo.tls.certresolver=le"
+      - "traefik.http.services.komodo.loadbalancer.server.port=9120"
+
+  # =========================================================
+  # Komodo Periphery (Agent – REQUIRED)
+  # =========================================================
+  periphery:
+    image: ghcr.io/moghtech/komodo-periphery:latest
+    container_name: komodo-periphery
+    restart: unless-stopped
+
+    environment:
+      PERIPHERY_HOST: 0.0.0.0
+      PERIPHERY_PORT: 8120
+
+      # 🔐 MUST match KOMODO_PASSKEY
+      PERIPHERY_PASSKEY: a9c3f0e4b0d7f2b9e2d6c7b9c4f2a8e1d7c3a1f9b0e2d4c7
+
+    volumes:
+      # Docker visibility
+      - /var/run/docker.sock:/var/run/docker.sock
+      # Host metrics
+      - /:/host:ro
+
+    networks:
+      - proxy
+
+networks:
+  proxy:
+    external: true
