@@ -31,37 +31,67 @@ echo "🚀 WordPress Client Onboarding"
 [[ "$AUTO_DEPLOY" == "true" ]] && echo "⚡ AUTO-DEPLOY ENABLED"
 
 # =========================================================
-# PREFLIGHT
+# PREFLIGHT CHECKS
 # =========================================================
-command -v docker >/dev/null || { echo "❌ Docker missing"; exit 1; }
+echo ""
+echo "🔍 Preflight checks..."
 
-run "mkdir -p letsencrypt ingress/letsencrypt"
-run "touch letsencrypt/acme.json ingress/letsencrypt/acme.json"
-run "chmod 600 letsencrypt/acme.json ingress/letsencrypt/acme.json"
+# Docker check
+command -v docker >/dev/null 2>&1 || { echo "❌ Docker not installed"; exit 1; }
 
+# ACME storage (root)
+run "mkdir -p letsencrypt"
+run "touch letsencrypt/acme.json"
+run "chmod 600 letsencrypt/acme.json"
+
+# Proxy network
 if ! docker network inspect proxy >/dev/null 2>&1; then
+  echo "⚠️  Docker network 'proxy' not found"
+  [[ "$AUTO_DEPLOY" == "true" ]] || read -p "Create Docker network 'proxy'? (y/N): " CONFIRM
+  [[ "$AUTO_DEPLOY" == "true" || "$CONFIRM" =~ ^[Yy]$ ]] || exit 1
   run "docker network create proxy"
 fi
 
+# Traefik ACME storage
+run "mkdir -p ingress/letsencrypt"
+run "touch ingress/letsencrypt/acme.json"
+run "chmod 600 ingress/letsencrypt/acme.json"
+
+# Traefik check
 if [[ "$(is_container_running traefik)" != "true" ]]; then
+  echo "⚠️  Traefik is not running"
+  [[ "$AUTO_DEPLOY" == "true" ]] || read -p "🚦 Deploy Traefik now? (y/N): " DEPLOY_TRAEFIK
+  [[ "$AUTO_DEPLOY" == "true" || "$DEPLOY_TRAEFIK" =~ ^[Yy]$ ]] || exit 1
   run "docker compose -f ingress/docker-compose.yml up -d"
+else
+  echo "✅ Traefik is running"
 fi
 
 # =========================================================
 # INPUT
 # =========================================================
+echo ""
 read -p "Client ID (short, unique): " CLIENT
-read -p "Client Domain: " DOMAIN
+read -p "Client Domain (example.com): " DOMAIN
 read -p "Plan (starter | pro | enterprise): " PLAN
 
 read -p "WordPress replicas (default 1): " WP_SCALE
 WP_SCALE=${WP_SCALE:-1}
 
+if ! [[ "$WP_SCALE" =~ ^[0-9]+$ ]] || [[ "$WP_SCALE" -lt 1 ]]; then
+  echo "❌ Invalid replica count"
+  exit 1
+fi
+
+if [[ "$WP_SCALE" -gt 1 ]]; then
+  echo "⚠️  Multiple replicas enabled — ensure immutable filesystem"
+fi
+
 read -s -p "DB password: " DB_PASS; echo
 read -s -p "DB root password: " DB_ROOT; echo
 
 # =========================================================
-# PLAN MAPPING (REDUCED & REALISTIC)
+# PLAN → RESOURCE MAPPING (REDUCED & REALISTIC)
 # =========================================================
 case "$PLAN" in
   starter)
@@ -106,13 +136,14 @@ esac
 BASE="clients/$CLIENT"
 
 # =========================================================
-# DIRECTORIES
+# DIRECTORY SETUP
 # =========================================================
 run "mkdir -p \
   '$BASE/data/wp' \
   '$BASE/data/uploads' \
   '$BASE/data/mysql'"
 
+# Uploads permission fix
 run "chown -R 33:33 '$BASE/data/uploads'"
 run "chmod 755 '$BASE/data/uploads'"
 
@@ -142,26 +173,32 @@ run "sed -i \
 run "sed -i 's/__CLIENT__/$CLIENT/g' '$BASE/wp-config-extra.php'"
 
 # =========================================================
-# DEPLOY
+# DEPLOY CLIENT STACK
 # =========================================================
-run "docker compose -f '$BASE/docker-compose.yml' up -d --scale wordpress=$WP_SCALE"
+if [[ "$AUTO_DEPLOY" == "true" ]]; then
+  run "docker compose -f '$BASE/docker-compose.yml' up -d --scale wordpress=$WP_SCALE"
+else
+  read -p "🚀 Deploy client stack now? (y/N): " DEPLOY
+  [[ "$DEPLOY" =~ ^[Yy]$ ]] && run "docker compose -f '$BASE/docker-compose.yml' up -d --scale wordpress=$WP_SCALE"
+fi
 
 # =========================================================
 # SUMMARY
 # =========================================================
 echo ""
-echo "✅ Client onboarded successfully"
+echo "✅ Onboarding completed"
 echo "--------------------------------"
-echo "Client     : $CLIENT"
-echo "Domain     : $DOMAIN"
-echo "Plan       : $PLAN"
-echo "Replicas   : $WP_SCALE"
-echo "WP CPU     : $WP_CPUS"
-echo "WP RAM     : $WP_MEMORY"
-echo "MySQL RAM  : $MYSQL_MEMORY"
-echo "Redis RAM  : $REDIS_MEMORY"
+echo "Client    : $CLIENT"
+echo "Domain    : $DOMAIN"
+echo "Plan      : $PLAN"
+echo "Replicas  : $WP_SCALE"
+echo "WP CPU    : $WP_CPUS"
+echo "WP RAM    : $WP_MEMORY"
+echo "MySQL RAM : $MYSQL_MEMORY"
+echo "Redis RAM : $REDIS_MEMORY"
 echo ""
-echo "DNS → CNAME $DOMAIN → platform.justbots.tech"
-echo "SSL → Issued by Traefik (Let's Encrypt)"
+echo "DNS  : CNAME $DOMAIN → platform.justbots.tech"
+echo "SSL  : Issued automatically by Traefik"
 echo ""
-[[ "$DRY_RUN" == "true" ]] && echo "⚠️ DRY-RUN COMPLETE"
+
+[[ "$DRY_RUN" == "true" ]] && echo "⚠️  DRY-RUN COMPLETE — no changes applied"
