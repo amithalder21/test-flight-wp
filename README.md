@@ -170,11 +170,11 @@ client.example.com → platform.example.com
 
 ## 📦 Plans & Resources (Example)
 
-| Plan       | CPU | Memory | Redis |
-| ---------- | --- | ------ | ----- |
-| Starter    | 0.5 | 512MB  | 128MB |
-| Pro        | 1.5 | 1.5GB  | 256MB |
-| Enterprise | 4.0 | 4GB    | 1GB   |
+| Plan       | WP CPU | WP RAM | MySQL CPU | MySQL RAM | InnoDB Pool | Max Conn | Redis RAM |
+| ---------- | ------ | ------ | --------- | --------- | ----------- | -------- | --------- |
+| starter    | 0.5    | 512M   | 0.5       | 768M      | 256M        | 80       | 64MB      |
+| pro        | 1.5    | 1.5G   | 1.0       | 1.5G      | 512M        | 150      | 128MB     |
+| enterprise | 4.0    | 4G     | 2.0       | 3G        | 1G          | 300      | 256MB     |
 
 ---
 
