@@ -197,7 +197,7 @@ echo "WP RAM    : $WP_MEMORY"
 echo "MySQL RAM : $MYSQL_MEMORY"
 echo "Redis RAM : $REDIS_MEMORY"
 echo ""
-echo "DNS  : CNAME $DOMAIN → platform.justbots.tech"
+echo "DNS  : CNAME $DOMAIN → platform.justbots.tech OR A Record $DOMAIN → $(curl checkip.amazonaws.com)"
 echo "SSL  : Issued automatically by Traefik"
 echo ""
 
